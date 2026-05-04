@@ -130,6 +130,50 @@ VirtualBox does **not** create a host-only network automatically — you must do
 
 ---
 
+## SSH Setup
+
+Setting up key-based SSH lets you access all nodes from your host and lets the control plane reach the workers without a password — useful for running cluster-wide commands.
+
+### 1. Copy your host public key to the control plane
+
+On your **host machine**, run:
+
+```bash
+ssh-copy-id user@192.168.122.10
+```
+
+Or manually append `~/.ssh/id_rsa.pub` (or `id_ed25519.pub`) to `~/.ssh/authorized_keys` on `server01`.
+
+### 2. Generate a key pair on the control plane
+
+SSH into `server01`, then:
+
+```bash
+ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
+```
+
+### 3. Authorize both keys on the control plane
+
+Still on `server01`, add its own public key to `authorized_keys` (this lets it SSH to itself and later to workers with the same key set):
+
+```bash
+cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+
+### 4. Distribute the `.ssh` directory to worker nodes
+
+From `server01`, copy the entire `.ssh` directory to each worker so they share the same authorized keys and key pair:
+
+```bash
+scp -r ~/.ssh user@192.168.122.11:~/
+scp -r ~/.ssh user@192.168.122.12:~/
+```
+
+After this, `server01` can SSH into `server02` and `server03` without a password, and your host can reach all nodes directly.
+
+---
+
 ## Step-by-Step Usage
 
 ### 1. Prepare all nodes
