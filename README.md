@@ -228,6 +228,40 @@ Expected output shows all three nodes in `Ready` state, all `kube-system` and `k
 
 ---
 
+## Accessing the Cluster from Your Host
+
+You can manage the cluster directly from your host machine without SSHing into `server01` every time.
+
+### 1. Install kubectl on the host
+
+```bash
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key | \
+    sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /' | \
+    sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+sudo apt-get update -y
+sudo apt-get install -y kubectl
+```
+
+### 2. Copy the kubeconfig from the control plane
+
+```bash
+mkdir -p ~/.kube
+scp user@192.168.122.10:~/.kube/config ~/.kube/config
+```
+
+### 3. Verify connectivity
+
+```bash
+kubectl get nodes
+```
+
+You should see `server01`, `server02`, and `server03` listed as `Ready`.
+
+---
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |
